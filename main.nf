@@ -40,7 +40,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 params.bt_index = params.genome ? params.genomes[ params.genome ].bowtie ?: false : false
 params.mirtrace_species = params.genome ? params.genomes[ params.genome ].mirtrace_species ?: false : false
 params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-params.mirna_gtf = params.mirtrace_species ? "ftp://mirbase.org/pub/mirbase/CURRENT/genomes/${params.mirtrace_species}.gff3" : false
+mirna_gtf_fn = params.mirtrace_species ? "ftp://mirbase.org/pub/mirbase/CURRENT/genomes/${params.mirtrace_species}.gff3" : false
 
 // Define regular variables so that they can be overwritten
 clip_r1 = params.clip_r1
@@ -80,7 +80,7 @@ if (!params.mirtrace_protocol){
     mirtrace_protocol = params.mirtrace_protocol
 }
 
-if (params.mirna_gtf) {
+if (mirna_gtf_fn) {
     mirna_gtf = file(params.mirna_gtf, checkIfExists: true)
 } else {
     mirna_gtf = false
@@ -175,8 +175,8 @@ summary["3' adapter"]          = three_prime_adapter
 summary['Output dir']          = params.outdir
 summary['Launch dir']          = workflow.launchDir
 summary['Working dir']         = workflow.workDir
-summary['Current home']        = "$HOME"
-summary['Current user']        = "$USER"
+// summary['Current home']        = "$HOME"
+// summary['Current user']        = "$USER"
 summary['Current path']        = "$PWD"
 summary['Script dir']          = workflow.projectDir
 summary['Config Profile']      = (workflow.profile == 'standard' ? 'UPPMAX' : workflow.profile)
