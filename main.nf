@@ -101,7 +101,7 @@ if (params.skip_mirdeep){
     } else {
         if (params.mature) { reference_mature = file(params.mature, checkIfExists: true) } else { exit 1, "Mature miRNA fasta file not found: ${params.mature}" }
         if (params.hairpin) { reference_hairpin = file(params.hairpin, checkIfExists: true) } else { exit 1, "Hairpin miRNA fasta file not found: ${params.hairpin}" }
-        if (params.fasta) { reference_genome = file(params.fasta, checkIfExists: true) } else { exit 1, "Reference genome Fasta file not found: ${params.fasta}" }
+        if (params.fasta) { reference_genome_fn = file(params.fasta, checkIfExists: true) } else { exit 1, "Reference genome Fasta file not found: ${params.fasta}" }
     }
 }
 
@@ -265,6 +265,35 @@ if (!params.references_parsed && !params.skip_mirdeep){
   /*
    * PREPROCESSING - Parse genome.fa and build Bowtie index for the reference genome
    */
+
+  if (params.fasta.endsWith('.gz')) {
+    process gunzip {
+      tag "$gzfile"
+      label 'process_low'
+  
+      conda (params.enable_conda ? "conda-forge::sed=4.7" : null)
+      if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+          container "https://containers.biocontainers.pro/s3/SingImgsRepo/biocontainers/v1.2.0_cv1/biocontainers_v1.2.0_cv1.img"
+      } else {
+          container "biocontainers/biocontainers:v1.2.0_cv1"
+      }
+  
+      input:
+      file gzfile from reference_genome_fn
+  
+      output:
+      file "$untar" into reference_genome
+  
+      script:
+      untar        = gzfile.toString() - '.gz'
+  
+      """
+      gunzip $gzfile
+      """
+    }
+  } else {
+    reference_genome = file(params.fasta)
+  }
   process bowtie_indices {
     label 'process_medium'
     publishDir path: { params.save_reference ? "${params.outdir}/references_parsed" : params.outdir },
